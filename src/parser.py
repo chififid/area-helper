@@ -1,115 +1,68 @@
-import os
-from struct import unpack_from
+import sys
+import glob
 from collections import namedtuple
 
-from termcolor import colored
-from numpy.compat import unicode
+from slider import Beatmap
+from osrparse import Replay
 
-from src.consts import OSU_DB_FILE, OSU_DB_SONGS
-
-
-Beatmap = namedtuple("Beatmap", "md5 folder file")
-
-
-# This functions
-def parse_num(db, offset_n, length):
-    type_map = {1: "B", 2: "H", 4: "I", 8: "Q"}
-    num_type = type_map[length]
-    val = unpack_from(num_type, db, offset_n)[0]
-    return val, offset_n + length
+from src.bar import create_bar, item_done
+from src.core.core import replay_validator
+from src.core.osu_worker.osu_db import find_local_beatmap_files_by_md5
 
 
-def parse_string(db, offset_n):
-    existence = unpack_from("b", db, offset_n)[0]
-    if existence == 0x00:
-        return "", offset_n + 1
-    elif existence == 0x0b:
-        # decode ULEB128
-        length = 0
-        shift = 0
-        offset_n += 1
-        while True:
-            val = unpack_from("B", db, offset_n)[0]
-            length |= ((val & 0x7F) << shift)
-            offset_n += 1
-            if (val & (1 << 7)) == 0:
-                break
-            shift += 7
+ParsedData = namedtuple("ParsedData", "beatmap beatmap_data beatmap_file_path replay")
 
-        string = unpack_from(str(length)+"s", db, offset_n)[0]
-        offset_n += length
+
+def local_parse(input_folder, osu_folder, callback, additional_data=None):
+    paths = list(filter(
+        lambda file: file.endswith(".osr"),
+        glob.glob(input_folder + "*")
+    ))
+
+    with create_bar(len(paths)) as bar:
+        print("Please wait")
+
+        replays = []
+        for replay_path in paths:
+            with open(replay_path, "rb") as f:
+                replay_string = f.read()
+
+            replay_name = replay_path.split("/")[-1]
+            replay = Replay.from_string(replay_string)
+
+            try:
+                replay_validator(replay, True)
+            except Exception as e:
+                item_done(bar, error_msg=f"{replay_name} - error in replay data \n{e}")
+                continue
+
+            replays.append(replay)
+
+        md5_dict = {}
+        for replay in replays:
+            md5_dict[replay.beatmap_hash] = replay
 
         try:
-            unicode_s = unicode(string, "utf-8")
-        except UnicodeDecodeError:
-            raise Exception("Could not parse UTF-8 string!")
-
-        return unicode_s, offset_n
-
-
-def parse_beatmap(db, offset_n):
-    for i in range(7):  # skip useless fields
-        _, offset_n = parse_string(db, offset_n)
-
-    # useful fields
-    md5, offset_n = parse_string(db, offset_n)
-    file, offset_n = parse_string(db, offset_n)
-
-    # skip useless fields
-    offset_n += 39
-
-    for i in range(0, 4):
-        num_pairs, offset_n = parse_num(db, offset_n, 4)
-        offset_n += 14 * num_pairs
-
-    offset_n += 12
-
-    num_points, offset_n = parse_num(db, offset_n, 4)
-    offset_n += 17 * num_points
-
-    offset_n += 23
-    for i in range(2):
-        _, offset_n = parse_string(db, offset_n)
-    offset_n += 2
-    _, offset_n = parse_string(db, offset_n)
-    offset_n += 10
-    folder, offset_n = parse_string(db, offset_n)
-    offset_n += 18
-
-    # return
-    bm = Beatmap(md5, folder, file)
-    return bm, offset_n
-
-
-def find_local_beatmap_files_by_md5(osu_folder, md5_list):
-    try:
-        with open(osu_folder + OSU_DB_FILE, "rb") as db_f:
-            database = db_f.read()
-    except OSError:
-        raise Exception("Could not open osu folder!")
-
-    offset = 17  # skip useless fields
-    try:
-        _, offset = parse_string(database, offset)
-        num_beatmaps, offset = parse_num(database, offset, 4)
-    except Exception as e:
-        raise Exception("Broken osu db file!\nError:\n" + e)
-
-    files = {}
-    for i in range(0, num_beatmaps):
-        try:
-            beatmap, offset = parse_beatmap(database, offset)
+            beatmap_file_paths_dict = find_local_beatmap_files_by_md5(osu_folder, md5_dict.keys())
         except Exception as e:
-            print(colored(e, "yellow"))
-            continue
+            sys.exit(e)
 
-        if beatmap.md5 in md5_list:
-            path = os.path.join(
-                osu_folder,
-                OSU_DB_SONGS,
-                beatmap.folder,
-                beatmap.file,
-            )
-            files[beatmap.md5] = path
+        for md5, replay in md5_dict.items():
+            beatmap_file_path = beatmap_file_paths_dict[md5]
+            with open(beatmap_file_path, 'rb') as f:
+                data = f.read()
+            try:
+                beatmap = Beatmap.parse(data.decode('utf-8-sig'))
+                beatmap_data = data.decode('utf-8-sig')
+            except:
+                item_done(bar, f'Failed to parse {beatmap_file_path}')
+                continue
 
-    return files
+            callback(ParsedData(
+                beatmap,
+                beatmap_data,
+                beatmap_file_path,
+                replay,
+            ), additional_data)
+
+            item_done(bar)

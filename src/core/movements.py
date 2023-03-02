@@ -2,25 +2,37 @@ from collections import namedtuple
 
 from slider import beatmap
 
-from src.core.math_utils import get_distance, get_speed
+from src.core.math_utils import get_distance, get_speed, Vec2
 from src.consts import SPEED_DECREASE_FACTOR, MIN_SNAP_SPEED, FORCE_SNAP_DISTANCE
 
-Movements = namedtuple("Movement", "time x y")
+Movement = namedtuple("Movement", "time x y")
 AimObj = namedtuple("AimObj", "movement i")
 
 
-def find_all_movements_in_timing(events, timing, time):
+def get_all_movements_in_timing(events, timing, time, last_i):
     movements_in_timing = []
 
-    i = 0
+    i = last_i
     while i < len(events) and timing[1] > (time + events[i].time_delta):
         if timing[0] is None or timing[0] < (time + events[i].time_delta):
-            movements_in_timing.append(Movements(
+            movements_in_timing.append(Movement(
                 time + events[i].time_delta,
                 events[i].x,
                 events[i].y,
             ))
         time += events[i].time_delta
+        i += 1
+
+    return movements_in_timing, i
+
+
+def find_all_movements_in_timing(movements, timing, last_i):
+    movements_in_timing = []
+
+    i = last_i
+    while i < len(movements) and timing[1] > movements[i].time:
+        if timing[0] is None or timing[0] < movements[i].time:
+            movements_in_timing.append(movements[i])
         i += 1
 
     return movements_in_timing, i
@@ -36,9 +48,7 @@ def get_snaps(movements, obj, next_obj):
 
     snaps = []
     snap = None
-    for i in range(1, len(movements)):
-        movement = movements[i]
-
+    for (i, movement) in enumerate(movements[1:], 1):
         delta_distance = get_distance(last_current_movement, movement)
         speed = get_speed(last_current_movement, movement, last_current_movement.time, movement.time)
         if not speed:
@@ -121,12 +131,33 @@ def get_nearest_obj(movements, obj):
     nearest_obj = None
     min_distance = None
 
-    for i in range(1, len(movements)):
-        movement = movements[i]
-
+    for (i, movement) in enumerate(movements[1:], 1):
         distance = get_distance(movement, obj.position)
         if not min_distance or distance < min_distance:
             min_distance = distance
             nearest_obj = AimObj(movement, i)
 
     return nearest_obj
+
+
+def get_nearest_cursor_pos(events, obj_time, cursor_time, last_i):
+    i = last_i
+    while i < len(events) and obj_time > (cursor_time + events[i].time_delta):
+        cursor_time += events[i].time_delta
+        i += 1
+
+    before_mov = Movement(cursor_time, events[i-1].x, events[i-1].y)
+    after_mov = Movement(cursor_time + events[i].time_delta, events[i].x, events[i].y)
+
+    moves_delta_pos = Vec2(after_mov.x - before_mov.x, after_mov.y - before_mov.y)
+
+    if after_mov.time - before_mov.time:
+        time_ratio = (obj_time - before_mov.time) / (after_mov.time - before_mov.time)
+        pos = Vec2(
+            time_ratio * moves_delta_pos.x + before_mov.x,
+            time_ratio * moves_delta_pos.y + before_mov.y,
+        )
+    else:
+        pos = Vec2(before_mov.x, before_mov.y)
+
+    return pos, i, cursor_time

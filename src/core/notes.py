@@ -26,7 +26,7 @@ def find_all_note_hold_times(objs, events):
                 (prev_obj_time + note_time) / 2,
                 (next_obj_time + note_time) / 2,
             )
-            (keys_in_note_timing, end_i) = find_all_keys_in_timing(key_ranges[next_key_range_i:], timing)
+            (keys_in_note_timing, next_key_range_i) = find_all_keys_in_timing(key_ranges, timing, next_key_range_i)
 
             if keys_in_note_timing:
                 keys_in_note_timing.sort(key=lambda key_range: (key_range[0] - note_time) ** 2)
@@ -36,7 +36,5 @@ def find_all_note_hold_times(objs, events):
 
                 if note_hold_time < MAX_NOTE_HOLD_TIME:
                     notes_hold_time.append(min_timing[1] - min_timing[0])
-
-            next_key_range_i += end_i
 
     return notes_hold_time

@@ -22,10 +22,10 @@ def find_all_slider_ranges(slider_objs):
     return ranges
 
 
-def find_all_keys_in_slider_timing(key_ranges, timing):
+def find_all_keys_in_slider_timing(key_ranges, timing, last_i):
     keys_in_slider_timing = []
 
-    i = 0
+    i = last_i
     while i < len(key_ranges) and key_ranges[i][0] < timing[1]:
         if key_ranges[i][0] > timing[0] or key_ranges[i][1] > timing[0]:
             keys_in_slider_timing.append(key_ranges[i])
@@ -42,8 +42,11 @@ def find_all_slider_end_release_times(slider_objs, events):
 
     next_key_range_i = 0
     for slider_range in slider_ranges:
-        (keys_in_slider_timing, end_i) = find_all_keys_in_slider_timing(key_ranges[next_key_range_i:], slider_range)
-        next_key_range_i += end_i
+        (keys_in_slider_timing, next_key_range_i) = find_all_keys_in_slider_timing(
+            key_ranges,
+            slider_range,
+            next_key_range_i
+        )
 
         if keys_in_slider_timing:
             keys_in_slider_timing.sort(key=lambda key_range: (key_range[0] - slider_range[0]) ** 2)

@@ -1,8 +1,13 @@
+import sys
 from math import sqrt
+from collections import namedtuple
 
 import numpy as np
 
 from src.consts import FILTERED_MIN_LEN
+
+
+Vec2 = namedtuple("Vec2", "x y")
 
 
 def filter_outliers(arr, bias=1.5):  # Code from circlecore/circleguard/utils.py
@@ -28,18 +33,29 @@ def filter_outliers(arr, bias=1.5):  # Code from circlecore/circleguard/utils.py
 
 
 def get_distance(pos_a, pos_b):
-    return sqrt(
-        (pos_b.x - pos_a.x) ** 2 +
-        (pos_b.y - pos_a.y) ** 2
-    )
+    return get_hypotenuse(pos_b.x - pos_a.x, pos_b.y - pos_a.y)
+
+
+def get_hypotenuse(x, y):
+    return sqrt(x ** 2 + y ** 2)
 
 
 def get_speed(pos_a, pos_b, time_a, time_b):
-    delta_time = time_a - time_b
+    delta_time = abs(time_a - time_b)
     if delta_time == 0:
         return None
 
     delta_distance = get_distance(pos_a, pos_b)
+
+    return delta_distance / delta_time
+
+
+def get_speed_in_line(pos_a, pos_b, time_a, time_b):
+    delta_time = abs(time_a - time_b)
+    if delta_time == 0:
+        return None
+
+    delta_distance = abs(pos_a - pos_b)
 
     return delta_distance / delta_time
 
@@ -50,6 +66,12 @@ def filter_by_range(arr, lower_limit, upper_limit):
 
 def divide_and_round(n, d, r):
     return round(n / d, r)
+
+
+def delete_duplicates_in_list(dup_l):
+    res = []
+    [res.append(x) for x in dup_l if x not in res]
+    return res
 
 
 def get_standard_deviation(arr, filtration=False):
@@ -73,4 +95,27 @@ def get_avg_range(arr):
 def angle_between(p1, p2):
     ang1 = np.arctan2(*p1[::-1])
     ang2 = np.arctan2(*p2[::-1])
-    return np.rad2deg((ang1 - ang2) % (2 * np.pi))
+
+    angle = np.rad2deg((ang1 - ang2) % (2 * np.pi))
+    if angle > 180:
+        angle = angle - 360
+    return angle
+
+
+def step_to_direction_point(point, direction_point, path_len):
+    delta_x = direction_point.x - point.x
+    delta_y = direction_point.y - point.y
+
+    distance = get_hypotenuse(delta_x, delta_y)
+    ratio = path_len / distance
+    return Vec2(point.x + ratio * delta_x, point.y + ratio * delta_y)
+
+
+def calculate_path_len(path):
+    path_len = 0
+
+    for (i, point) in enumerate(path[1:], 1):
+        last_point = path[i-1]
+        path_len += get_hypotenuse(point.x - last_point.x, point.y - last_point.y)
+
+    return path_len

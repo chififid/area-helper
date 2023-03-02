@@ -34,6 +34,16 @@ def get_mode_divisor(mods):
     return 1
 
 
+def get_replay_data(replay):
+    replay_data = replay.replay_data
+    delta_time = 0
+    while replay_data[0].x == 256 and replay_data[0].y == -500:
+        delta_time += replay_data[0].time_delta
+        del replay_data[0]
+    replay_data[0].time_delta += delta_time
+    return replay_data
+
+
 def find_all_event_with_key_ranges(events):
     ranges = []
 
@@ -67,10 +77,10 @@ def find_all_key_ranges(events):
     return [(key_range.start.time, key_range.end.time) for key_range in ranges]
 
 
-def find_all_events_with_keys_in_timing(key_ranges, timing):
+def find_all_events_with_keys_in_timing(key_ranges, timing, last_i):
     keys_in_note_timing = []
 
-    i = 0
+    i = last_i
     while i < len(key_ranges) and timing[1] > key_ranges[i].start.time:
         if timing[0] is None or timing[0] < key_ranges[i].start.time:
             keys_in_note_timing.append(key_ranges[i])
@@ -79,8 +89,8 @@ def find_all_events_with_keys_in_timing(key_ranges, timing):
     return keys_in_note_timing, i
 
 
-def find_all_keys_in_timing(key_ranges, timing):
-    ranges = find_all_events_with_keys_in_timing(key_ranges, timing)
+def find_all_keys_in_timing(key_ranges, timing, last_i):
+    ranges = find_all_events_with_keys_in_timing(key_ranges, timing, last_i)
 
     return [(key_range.start.time, key_range.end.time) for key_range in ranges[0]], ranges[1]
 

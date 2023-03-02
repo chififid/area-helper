@@ -46,7 +46,8 @@ def find_first_hit(obj, key_ranges, note_time, note_size):
 
     (events_with_keys, i) = find_all_events_with_keys_in_timing(
         key_ranges,
-        [obj_time - note_time, obj_time + note_time]
+        [obj_time - note_time, obj_time + note_time],
+        0,
     )
 
     for event_with_keys in events_with_keys:
