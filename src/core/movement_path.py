@@ -26,32 +26,38 @@ def line_approximate_movements(movements, rounding_radius):
         else:
             last_movement = point
 
-        if i < len(movements) and rounding_radius / abs(get_distance(point, last_movement) - rounding_radius) < 10:
+        while i < len(movements) and last_movement.time == movements[i].time:
+            i += 1
+
+        if i < len(movements):
             next_movement = movements[i]
 
-            g_point = Point(point.x, point.y)
-            g_circle = g_point.buffer(rounding_radius).boundary
+            if rounding_radius / abs(get_distance(point, last_movement) - rounding_radius) < 100 \
+                    and get_distance(point, next_movement) >= rounding_radius:
 
-            g_line = LineString([(last_movement.x, last_movement.y), (next_movement.x, next_movement.y)])
+                g_point = Point(point.x, point.y)
+                g_circle = g_point.buffer(rounding_radius).boundary
 
-            g_intersection = g_circle.intersection(g_line)
-            if type(g_intersection) == MultiPoint:
-                min_distance = None
-                for i_point in g_intersection.geoms:
-                    distance = get_distance(next_movement, i_point)
-                    if not min_distance or distance > min_distance:
-                        g_intersection = i_point
+                g_line = LineString([(last_movement.x, last_movement.y), (next_movement.x, next_movement.y)])
 
-            delta_dist = get_distance(last_movement, g_intersection)
-            full_dist = get_distance(last_movement, next_movement)
-            delta_time = next_movement.time - last_movement.time
-            new_time = last_movement.time + delta_time * (delta_dist / full_dist)
+                g_intersection = g_circle.intersection(g_line)
+                if type(g_intersection) == MultiPoint:
+                    min_distance = None
+                    for i_point in g_intersection.geoms:
+                        distance = get_distance(next_movement, i_point)
+                        if not min_distance or distance > min_distance:
+                            g_intersection = i_point
 
-            chain.append(Movement(
-                new_time,
-                g_intersection.x,
-                g_intersection.y,
-            ))
+                delta_dist = get_distance(last_movement, g_intersection)
+                full_dist = get_distance(last_movement, next_movement)
+                delta_time = next_movement.time - last_movement.time
+                new_time = last_movement.time + delta_time * (delta_dist / full_dist)
+
+                chain.append(Movement(
+                    new_time,
+                    g_intersection.x,
+                    g_intersection.y,
+                ))
 
         sum_x = sum_y = 0
         for movement in chain:
@@ -68,6 +74,7 @@ def line_approximate_movements(movements, rounding_radius):
             projected_point = step_to_direction_point(point, new_point, dist_to_start_point)
 
             speed = get_speed(projected_point, path[-1].pos, movement.time, path[-1].time)
+
             if not speed:
                 continue
 
@@ -77,12 +84,42 @@ def line_approximate_movements(movements, rounding_radius):
     return path
 
 
+def convert_path_to_points(path, slider_speed):
+    slowed_path = []
+    for (i, path_item) in enumerate(path):
+        slowed_path.append(path_item.pos)
+        slowed_path.append(path_item.pos)
+
+        if not path_item.speed:
+            continue
+
+        last_path_item = path[i - 1]
+
+        step_count = slider_speed / path_item.speed - 1
+
+        distance = get_distance(path_item.pos, last_path_item.pos)
+
+        while round(step_count, 2):
+            twice_step = min(step_count, 2)
+
+            if twice_step < 2:
+                additional_point = step_to_direction_point(path_item.pos, last_path_item.pos,
+                                                           (twice_step / 2) * distance)
+            else:
+                additional_point = last_path_item.pos
+
+            slowed_path.append(additional_point)
+            slowed_path.append(additional_point)
+            slowed_path.append(path_item.pos)
+            slowed_path.append(path_item.pos)
+
+            step_count -= twice_step
+
+    return slowed_path
+
+
 def get_max_speed_on_path(path):
     return max([i.speed for i in path])
-
-
-def round_points_in_path(path):
-    return [Vec2(round(p.pos.x), round(p.pos.y)) for p in path]
 
 
 def get_movements_chain_in_radius(point, radius, movements, last_i):

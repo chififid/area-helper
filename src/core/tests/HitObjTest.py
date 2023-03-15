@@ -19,10 +19,11 @@ class HitObjTest(unittest.TestCase):
         expected_result_obj_dict = {
             "time": 30807,
             "obj_type": HitObjType.Slider,
-            "points": [[Vec2(74, 251)]],
+            "points": [[Vec2(74, 251), Vec2(x=181, y=307)]],
             "repeat": 1,
             "length": 100.0,
         }
+        print(obj.__dict__.items())
         self.assertTrue(expected_result_obj_dict.items() <= obj.__dict__.items())
 
     def test_change_note(self):

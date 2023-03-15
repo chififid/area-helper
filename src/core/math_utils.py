@@ -40,6 +40,10 @@ def get_hypotenuse(x, y):
     return sqrt(x ** 2 + y ** 2)
 
 
+def round_cords(cords):
+    return [Vec2(round(p.x), round(p.y)) for p in cords]
+
+
 def get_speed(pos_a, pos_b, time_a, time_b):
     delta_time = abs(time_a - time_b)
     if delta_time == 0:

@@ -1,3 +1,10 @@
+def change_stack_leniency(lines, start_i, value):
+    i = skip_to_stack_leniency(lines, start_i)
+    del lines[i]
+    lines.insert(i, f"StackLeniency:{value}")
+    return i
+
+
 def change_version(lines, start_i, postfix):
     i = skip_to_version(lines, start_i)
     version_line = lines[i]
@@ -18,6 +25,13 @@ def parse_slider_multiplier(lines, start_i):
 def skip_to_slider_multiplier(lines, start_i):
     i = start_i
     while not ("SliderMultiplier:" in lines[i] and "ApproachRate:" in lines[i - 1]):
+        i += 1
+    return i
+
+
+def skip_to_stack_leniency(lines, start_i):
+    i = start_i
+    while not ("StackLeniency:" in lines[i] and "SampleSet:" in lines[i - 1]):
         i += 1
     return i
 

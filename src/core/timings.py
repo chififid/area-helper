@@ -1,3 +1,6 @@
+from src.core.objects.TimingPointType import TimingPointType
+
+
 def get_slider_velocity(slider_multiplier, timing_points, slider_start_time):
     i = 0
     while i < len(timing_points) and timing_points[i].time <= slider_start_time:
@@ -5,7 +8,7 @@ def get_slider_velocity(slider_multiplier, timing_points, slider_start_time):
 
     timing_point = timing_points[i - 1]
     beat_length = timing_point.beat_length
-    if beat_length > 0:
+    if timing_point.type == TimingPointType.RED:
         slider_velocity = slider_multiplier
     else:
         slider_velocity = slider_multiplier * (-100 / beat_length)
