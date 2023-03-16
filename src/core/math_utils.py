@@ -72,12 +72,6 @@ def divide_and_round(n, d, r):
     return round(n / d, r)
 
 
-def delete_duplicates_in_list(dup_l):
-    res = []
-    [res.append(x) for x in dup_l if x not in res]
-    return res
-
-
 def get_standard_deviation(arr, filtration=False):
     if filtration:
         arr = filter_outliers(arr)

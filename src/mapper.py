@@ -1,17 +1,16 @@
 import os
 
+from src.consts import REQUIRED_HIT_TIME
 from src.core.objects.HitObj import HitObj, HitObjType
 from src.core.objects.TimingPointType import TimingPointType
-from src.core.movements import get_nearest_cursor_pos, get_all_movements_in_timing
 from src.core.math_utils import calculate_path_len, round_cords
+from src.core.movements import get_nearest_cursor_pos, get_all_movements_in_timing
 from src.core.timings import get_slider_velocity, get_ms_per_beat, get_inherited_beat_length
 from src.core.osu_worker.timings import parse_timing_point, TimingPoint, create_additional_timing_point
 from src.core.movement_path import line_approximate_movements, get_max_speed_on_path, \
     convert_path_to_points
 from src.core.osu_worker.beatmap import skip_to_timings, skip_to_hit_objs, change_version, parse_slider_multiplier, \
     change_stack_leniency
-
-REQUIRED_HIT_TIME = -12  # -12
 
 
 def remap_and_save(parsed_data, _):
@@ -61,10 +60,6 @@ def remap(beatmap_data, replay):
         hit_obj = HitObj.parse_from_str(line)
         if not hit_obj:
             continue
-        print(hit_obj.time)
-
-        if hit_obj.time > 16569:
-            exit()
 
         obj_relax_time = hit_obj.time + REQUIRED_HIT_TIME  # ms
 
@@ -87,9 +82,7 @@ def remap(beatmap_data, replay):
             cursor_time = movements[-1].time
             path = line_approximate_movements(movements, 15)
 
-            print(path)
             max_speed = get_max_speed_on_path(path)
-            print(max_speed)
 
             if max_speed:
                 beat_length = get_inherited_beat_length(slider_multiplier, ms_per_beat, max_speed)
@@ -98,6 +91,9 @@ def remap(beatmap_data, replay):
                     beat_length,
                     TimingPointType.GREEN,
                 ))
+
+            if max_speed > 10:
+                print(list(filter(lambda item: item.speed > 10, path)))
 
             path = convert_path_to_points(path, max_speed)
             points = round_cords(path)
@@ -114,9 +110,6 @@ def remap(beatmap_data, replay):
             hit_obj.set_note_data(cursor_pos)
 
         new_line = hit_obj.change_osu_line(line)
-        # print(new_line)
-        # if line_i - i > 4:
-        #     sys.exit()
 
         del lines[line_i]
         lines.insert(line_i, new_line)
@@ -151,5 +144,4 @@ def remap(beatmap_data, replay):
         del additional_timing_points[0]
         i += 1
 
-    print(len(lines))
     return new_version, "\n".join(lines)

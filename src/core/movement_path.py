@@ -4,8 +4,10 @@ from shapely import MultiPoint
 from shapely.geometry import Point
 from shapely.geometry import LineString
 
-from src.core.movements import Movement
+from src.consts import ALLOWED_ERROR_FACTOR
+from src.core.movements import Movement, delete_same_movements
 from src.core.math_utils import get_distance, Vec2, step_to_direction_point, get_speed
+
 
 PathItem = namedtuple("PathItem", "time speed pos")
 
@@ -13,6 +15,8 @@ PathItem = namedtuple("PathItem", "time speed pos")
 def line_approximate_movements(movements, rounding_radius):
     if len(movements) < 2:
         return None
+
+    movements = delete_same_movements(movements)
 
     point = movements[0]
     path = [PathItem(point.time, 0, Vec2(point.x, point.y))]
@@ -26,41 +30,21 @@ def line_approximate_movements(movements, rounding_radius):
         else:
             last_movement = point
 
-        while i < len(movements) and last_movement.time == movements[i].time:
-            i += 1
-
         if i < len(movements):
             next_movement = movements[i]
+            if get_distance(point, next_movement) >= rounding_radius:
+                intersection_movement = create_intersection_movement(
+                    rounding_radius,
+                    point,
+                    last_movement,
+                    next_movement,
+                )
 
-            if rounding_radius / abs(get_distance(point, last_movement) - rounding_radius) < 100 \
-                    and get_distance(point, next_movement) >= rounding_radius:
+                if intersection_movement:
+                    chain.append(intersection_movement)
 
-                g_point = Point(point.x, point.y)
-                g_circle = g_point.buffer(rounding_radius).boundary
-
-                g_line = LineString([(last_movement.x, last_movement.y), (next_movement.x, next_movement.y)])
-
-                g_intersection = g_circle.intersection(g_line)
-                if type(g_intersection) == MultiPoint:
-                    min_distance = None
-                    for i_point in g_intersection.geoms:
-                        distance = get_distance(next_movement, i_point)
-                        if not min_distance or distance > min_distance:
-                            g_intersection = i_point
-
-                delta_dist = get_distance(last_movement, g_intersection)
-                full_dist = get_distance(last_movement, next_movement)
-                delta_time = next_movement.time - last_movement.time
-                new_time = last_movement.time + delta_time * (delta_dist / full_dist)
-
-                if 1 / (next_movement.time - new_time) > 15:
-                    print("error")
-
-                chain.append(Movement(
-                    new_time,
-                    g_intersection.x,
-                    g_intersection.y,
-                ))
+                    if intersection_movement == next_movement:
+                        i += 1
 
         sum_x = sum_y = 0
         for movement in chain:
@@ -78,20 +62,49 @@ def line_approximate_movements(movements, rounding_radius):
 
             speed = get_speed(projected_point, path[-1].pos, movement.time, path[-1].time)
 
-            if not speed:
-                continue
-
             path.append(PathItem(movement.time, speed, Vec2(projected_point.x, projected_point.y)))
 
         point = Movement(path[-1].time, path[-1].pos.x, path[-1].pos.y)
     return path
 
 
+def create_intersection_movement(rounding_radius, point, last_movement, next_movement):
+    allowed_error = min(1, rounding_radius / ALLOWED_ERROR_FACTOR)
+
+    if abs(get_distance(point, last_movement) - rounding_radius) < allowed_error:
+        return
+    elif abs(get_distance(point, next_movement) - rounding_radius) < allowed_error:
+        return next_movement
+
+    g_point = Point(point.x, point.y)
+    g_circle = g_point.buffer(rounding_radius).boundary
+
+    g_line = LineString([(last_movement.x, last_movement.y), (next_movement.x, next_movement.y)])
+
+    g_intersection = g_circle.intersection(g_line)
+    if type(g_intersection) == MultiPoint:
+        min_distance = None
+        for i_point in g_intersection.geoms:
+            distance = get_distance(next_movement, i_point)
+            if not min_distance or distance > min_distance:
+                g_intersection = i_point
+
+    delta_dist = get_distance(last_movement, g_intersection)
+    full_dist = get_distance(last_movement, next_movement)
+    delta_time = next_movement.time - last_movement.time
+    new_time = last_movement.time + delta_time * (delta_dist / full_dist)
+
+    return Movement(
+        new_time,
+        g_intersection.x,
+        g_intersection.y,
+    )
+
+
 def convert_path_to_points(path, slider_speed):
     slowed_path = []
     for (i, path_item) in enumerate(path):
-        slowed_path.append(path_item.pos)
-        slowed_path.append(path_item.pos)
+        slowed_path += [path_item.pos] * 2
 
         if not path_item.speed:
             continue
@@ -111,10 +124,7 @@ def convert_path_to_points(path, slider_speed):
             else:
                 additional_point = last_path_item.pos
 
-            slowed_path.append(additional_point)
-            slowed_path.append(additional_point)
-            slowed_path.append(path_item.pos)
-            slowed_path.append(path_item.pos)
+            slowed_path += [additional_point] * 2 + [path_item.pos] * 2
 
             step_count -= twice_step
 

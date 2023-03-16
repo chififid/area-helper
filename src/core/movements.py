@@ -161,3 +161,20 @@ def get_nearest_cursor_pos(events, obj_time, cursor_time, last_i):
         pos = Vec2(before_mov.x, before_mov.y)
 
     return pos, i, cursor_time
+
+
+def delete_same_movements(movements):
+    last_movement = None
+
+    i = 0
+    while i < len(movements):
+        if last_movement and (last_movement.time == movements[i].time or
+                              (last_movement.x == movements[i].x and
+                               last_movement.y == movements[i].y)):
+            del movements[i]
+            continue
+
+        last_movement = movements[i]
+        i += 1
+
+    return movements
