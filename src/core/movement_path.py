@@ -53,6 +53,9 @@ def line_approximate_movements(movements, rounding_radius):
                 delta_time = next_movement.time - last_movement.time
                 new_time = last_movement.time + delta_time * (delta_dist / full_dist)
 
+                if 1 / (next_movement.time - new_time) > 15:
+                    print("error")
+
                 chain.append(Movement(
                     new_time,
                     g_intersection.x,

@@ -11,7 +11,7 @@ from src.core.movement_path import line_approximate_movements, get_max_speed_on_
 from src.core.osu_worker.beatmap import skip_to_timings, skip_to_hit_objs, change_version, parse_slider_multiplier, \
     change_stack_leniency
 
-REQUIRED_HIT_TIME = 0  # -12
+REQUIRED_HIT_TIME = -12  # -12
 
 
 def remap_and_save(parsed_data, _):
@@ -63,6 +63,9 @@ def remap(beatmap_data, replay):
             continue
         print(hit_obj.time)
 
+        if hit_obj.time > 16569:
+            exit()
+
         obj_relax_time = hit_obj.time + REQUIRED_HIT_TIME  # ms
 
         if hit_obj.obj_type == HitObjType.Slider:
@@ -84,7 +87,9 @@ def remap(beatmap_data, replay):
             cursor_time = movements[-1].time
             path = line_approximate_movements(movements, 15)
 
+            print(path)
             max_speed = get_max_speed_on_path(path)
+            print(max_speed)
 
             if max_speed:
                 beat_length = get_inherited_beat_length(slider_multiplier, ms_per_beat, max_speed)
@@ -122,22 +127,23 @@ def remap(beatmap_data, replay):
 
         next_tp = parse_timing_point(lines[i])
         if next_tp.time > additional_tp.time:
-            last_tp = parse_timing_point(lines[i - 1])
+            last_tp_line = lines[i - 1]
+            last_tp = parse_timing_point(last_tp_line)
 
             if last_tp.time == additional_tp.time and last_tp.type == TimingPointType.GREEN:
                 del lines[i - 1]
                 i -= 1
 
-            lines.insert(i, create_additional_timing_point(additional_tp, lines[i - 1]))
+            lines.insert(i, create_additional_timing_point(additional_tp, last_tp_line))
             del additional_timing_points[0]
         i += 1
 
-    last_tp_line = lines[i-1]
+    last_tp_line = lines[i - 1]
     last_tp = parse_timing_point(last_tp_line)
     while additional_timing_points:
         additional_tp = additional_timing_points[0]
         if last_tp.time == additional_tp.time and last_tp.type == TimingPointType.GREEN:
-            del lines[i-1]
+            del lines[i - 1]
             i -= 1
 
         lines.insert(i, create_additional_timing_point(additional_tp, last_tp_line))
