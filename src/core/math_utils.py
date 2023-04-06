@@ -1,3 +1,4 @@
+import math
 import sys
 from math import sqrt
 from collections import namedtuple

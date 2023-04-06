@@ -37,7 +37,7 @@ def get_mode_divisor(mods):
 def get_replay_data(replay):
     replay_data = replay.replay_data
     delta_time = 0
-    while replay_data[0].x == 256 and replay_data[0].y == -500:
+    while replay_data[0].x == 256 and replay_data[0].y == -500:  # Cursor is not found
         delta_time += replay_data[0].time_delta
         del replay_data[0]
     replay_data[0].time_delta += delta_time

@@ -3,7 +3,7 @@ from collections import namedtuple
 from slider import beatmap
 
 from src.core.math_utils import get_distance, get_speed, Vec2
-from src.consts import SPEED_DECREASE_FACTOR, MIN_SNAP_SPEED, FORCE_SNAP_DISTANCE
+from src.consts import SPEED_DECREASE_FACTOR_IN, SPEED_DECREASE_FACTOR_OUT, MIN_SNAP_SPEED
 
 Movement = namedtuple("Movement", "time x y")
 AimObj = namedtuple("AimObj", "movement i")
@@ -49,7 +49,6 @@ def get_snaps(movements, obj, next_obj):
     snaps = []
     snap = None
     for (i, movement) in enumerate(movements[1:], 1):
-        delta_distance = get_distance(last_current_movement, movement)
         speed = get_speed(last_current_movement, movement, last_current_movement.time, movement.time)
         if not speed:
             continue
@@ -57,32 +56,27 @@ def get_snaps(movements, obj, next_obj):
             last_current_movement = movement
 
         if not is_snap_aim:
-            if (speed > max_speed / SPEED_DECREASE_FACTOR and delta_distance > FORCE_SNAP_DISTANCE) \
-                    or max_speed < MIN_SNAP_SPEED:
+            if speed > max_speed / SPEED_DECREASE_FACTOR_IN or max_speed < MIN_SNAP_SPEED:
                 if speed > max_speed:
                     max_speed = speed
             else:
                 is_snap_aim = True
 
         if is_snap_aim:  # Not else because we can get here after upper block
-            if delta_distance < FORCE_SNAP_DISTANCE:
-                snap = AimObj(movement, i)
-                snaps.append(snap)
-
-                snap = None
-            elif not min_speed or speed < min_speed:
+            if not min_speed or speed < min_speed:
                 snap = AimObj(movement, i)
                 min_speed = speed
-            elif speed > max_speed / SPEED_DECREASE_FACTOR and delta_distance > FORCE_SNAP_DISTANCE:
+            elif speed > max_speed / SPEED_DECREASE_FACTOR_OUT:
                 if snap:
                     snaps.append(snap)
 
+                # clear variables
+                is_snap_aim = False
                 min_speed = None
                 max_speed = 0
-                is_snap_aim = False
                 snap = None
 
-    if is_snap_aim and snap:
+    if snap:
         snaps.append(snap)
 
     if not snaps:
@@ -91,43 +85,52 @@ def get_snaps(movements, obj, next_obj):
         return get_current_snaps(snaps, obj, next_obj)
 
 
-def get_current_snaps(snaps, obj, next_obj):
+def get_current_snaps(snaps, obj, next_obj):  # Snaps sorted by time
     current_snaps = []
-    max_snap = None
+    last_controversy_snap = None
 
-    is_slider = isinstance(obj, beatmap.Slider)
-    if is_slider:
+    is_obj_slider = isinstance(obj, beatmap.Slider)
+
+    obj_position = get_obj_end_position(obj)
+    if is_obj_slider:
         obj_time = obj.end_time.total_seconds() * 10 ** 3
     else:
         obj_time = obj.time.total_seconds() * 10 ** 3
 
     if next_obj:
+        next_obj_position = get_obj_end_position(next_obj)
+
         next_obj_time = next_obj.time.total_seconds() * 10 ** 3
         average_time = (obj_time + next_obj_time) / 2
 
     for snap in snaps:
         if next_obj:
-            if not is_slider:
-                obj_dist = get_distance(snap.movement, obj.position)
-                next_obj_dist = get_distance(snap.movement, next_obj.position)
+            obj_dist = get_distance(snap.movement, obj_position)
+            next_obj_dist = get_distance(snap.movement, next_obj_position)
 
             # TODO: Fix ignore slider dist
-            if snap.movement.time < average_time and \
-                    (is_slider or (not is_slider and obj_dist < next_obj_dist)):
+            if snap.movement.time < average_time and obj_dist < next_obj_dist:
                 current_snaps.append(snap)
-            elif snap.movement.time > average_time and \
-                    (is_slider or (not is_slider and obj_dist > next_obj_dist)):
-                continue  # Snapped to next obj
+            elif snap.movement.time > average_time and obj_dist > next_obj_dist:
+                break
         else:
             current_snaps.append(snap)
 
-        if not max_snap or max_snap.movement.time < snap.movement.time:
-            max_snap = snap
+        last_controversy_snap = snap
 
-    return current_snaps, max_snap
+    return current_snaps, last_controversy_snap
 
 
-def get_nearest_obj(movements, obj):
+def get_obj_end_position(obj):
+    is_slider = isinstance(obj, beatmap.Slider)
+
+    if is_slider:
+        return obj.curve(1)
+    else:
+        return obj.position
+
+
+def get_nearest_aim_obj(movements, obj):
     nearest_obj = None
     min_distance = None
 
@@ -168,13 +171,14 @@ def delete_same_movements(movements):
 
     i = 0
     while i < len(movements):
-        if last_movement and (last_movement.time == movements[i].time or
-                              (last_movement.x == movements[i].x and
-                               last_movement.y == movements[i].y)):
+        movement = movements[i]
+        if last_movement and (last_movement.time == movement.time or
+                              (last_movement.x == movement.x and
+                               last_movement.y == movement.y)):
             del movements[i]
-            continue
+        else:
+            i += 1
 
-        last_movement = movements[i]
-        i += 1
+        last_movement = movement
 
     return movements

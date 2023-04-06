@@ -84,7 +84,7 @@ def convert_to_tablet_offset(game_offset, monitor_ratio, tablet_area):
 
 
 def give_area_config(parsed_data, additional_information):
-    aim_information = get_aim_information(parsed_data.beatmap, parsed_data.replay)
+    aim_information = get_aim_information(parsed_data.beatmap, parsed_data.replay, False)
 
     tablet_data = get_tablet_data(aim_information)
 

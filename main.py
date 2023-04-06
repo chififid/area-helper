@@ -43,6 +43,6 @@ line = "/home/rb/PortWINE/PortProton/prefixes/DOTNET/drive_c/Program Files (x86)
 
 
 if __name__ == "__main__":
-    run_remap(INPUT_PATH, OSU_FOLDER)
-    # run_config_tablet(INPUT_PATH, OSU_FOLDER)
+    # run_remap(INPUT_PATH, OSU_FOLDER)
+    run_config_tablet(INPUT_PATH, OSU_FOLDER)
 

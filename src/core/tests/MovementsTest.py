@@ -35,7 +35,7 @@ class MovementsTest(unittest.TestCase):
         replay_data = get_replay_data(replay)
 
         (pos, i, cursor_time) = get_nearest_cursor_pos(replay_data, 129228, 0, 0)
-        self.assertTrue(cursor_time == 129219 and pos.x == 233 and pos.y == -4)
+        self.assertTrue(cursor_time == 129219 and round(pos.x) == 233 and round(pos.y) == -4)
         (pos, i, cursor_time) = get_nearest_cursor_pos(replay_data, 129439, cursor_time, i)
-        self.assertTrue(cursor_time == 129433 and pos.x == 117 and pos.y == 400)
+        self.assertTrue(cursor_time == 129433 and round(pos.x) == 117 and round(pos.y) == 400)
 

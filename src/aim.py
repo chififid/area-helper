@@ -1,19 +1,21 @@
+import math
 from collections import namedtuple
 
 from osrparse.utils import Mod
 from slider import beatmap, Position
 
-from src.core.math_utils import get_distance
 from src.core.objects.Timings import Timings
+from src.consts import POSSIBLE_SNAP_WINDOW_FACTOR
+from src.core.math_utils import get_distance, Vec2
 from src.core.core import check_current_obj, get_replay_data
 from src.core.beatmap import get_obj_animation_time, get_obj_time_window
-from src.core.movements import get_all_movements_in_timing, get_snaps, get_nearest_obj
+from src.core.movements import get_all_movements_in_timing, get_snaps, get_nearest_aim_obj
 
 
 AimOffset = namedtuple("AimOffset", "hit_obj_pos cursor_pos diff_weight")
 
 
-def get_aim_information(bm, replay):
+def get_aim_information(bm, replay, flow_aim=True):
     result = []
 
     time = 0
@@ -60,19 +62,24 @@ def get_aim_information(bm, replay):
 
         first_event_i_in_last_obj_timing = event_i_after_obj_timing - len(movements)
 
-        (current_snaps, max_snap) = get_snaps(movements, obj, next_obj)
+        (current_snaps, last_controversy_snap) = get_snaps(movements, obj, next_obj)
 
-        if max_snap:
-            time = max_snap.movement.time
-            next_event_i = max_snap.i
+        if last_controversy_snap:
+            time = last_controversy_snap.movement.time
+            next_event_i = last_controversy_snap.i + 1
 
         if current_snaps:
+            current_snaps = filter_impossible_snaps(current_snaps, obj_time, window_timing)
             aim_obj = current_snaps[0]
-        elif not current_snaps:
-            aim_obj = get_nearest_obj(movements, obj)
-            if (max_snap and aim_obj.movement.time > time) or not max_snap:
+        else:
+            aim_obj = get_nearest_aim_obj(movements, obj)
+            if not last_controversy_snap:
                 time = aim_obj.movement.time
-                next_event_i = aim_obj.i
+                next_event_i = aim_obj.i + 1
+
+            if not flow_aim:
+                prev_aim_obj = aim_obj
+                continue
 
         if prev_aim_obj:
             diff_weight = get_diff_weight(prev_aim_obj, obj)
@@ -89,4 +96,15 @@ def get_aim_information(bm, replay):
 
 def get_diff_weight(prev_aim_obj, obj):
     distance = get_distance(obj.position, prev_aim_obj.movement)
-    return distance
+    print(distance)
+    max_distance = get_distance(Vec2(0, 0), Vec2(Position.x_max, Position.y_max))
+    normalized_distance = distance / max_distance
+    print(math.sqrt(normalized_distance))
+    return math.sqrt(normalized_distance)
+
+
+def filter_impossible_snaps(snaps, obj_time, window_timing):
+    return list(filter(
+        lambda s: s.movement.time > obj_time - POSSIBLE_SNAP_WINDOW_FACTOR * window_timing,
+        snaps,
+    ))
