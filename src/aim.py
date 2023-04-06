@@ -5,8 +5,8 @@ from osrparse.utils import Mod
 from slider import beatmap, Position
 
 from src.core.objects.Timings import Timings
-from src.consts import POSSIBLE_SNAP_WINDOW_FACTOR
 from src.core.math_utils import get_distance, Vec2
+from src.core.consts import POSSIBLE_SNAP_WINDOW_FACTOR
 from src.core.core import check_current_obj, get_replay_data
 from src.core.beatmap import get_obj_animation_time, get_obj_time_window
 from src.core.movements import get_all_movements_in_timing, get_snaps, get_nearest_aim_obj
@@ -96,10 +96,8 @@ def get_aim_information(bm, replay, flow_aim=True):
 
 def get_diff_weight(prev_aim_obj, obj):
     distance = get_distance(obj.position, prev_aim_obj.movement)
-    print(distance)
     max_distance = get_distance(Vec2(0, 0), Vec2(Position.x_max, Position.y_max))
     normalized_distance = distance / max_distance
-    print(math.sqrt(normalized_distance))
     return math.sqrt(normalized_distance)
 
 

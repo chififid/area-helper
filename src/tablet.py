@@ -6,7 +6,7 @@ from src.aim import get_aim_information
 from src.core.math_utils import Vec2, angle_between
 
 
-TabletData = namedtuple("TabletData", "angle offset resize")  # offset in osu px
+TabletData = namedtuple("TabletData", "angle offset resize")  # Offset in osu px
 
 
 OSU_AREA_RATIO = 4 / 3

@@ -23,7 +23,6 @@ class HitObjTest(unittest.TestCase):
             "repeat": 1,
             "length": 100.0,
         }
-        print(obj.__dict__.items())
         self.assertTrue(expected_result_obj_dict.items() <= obj.__dict__.items())
 
     def test_change_note(self):

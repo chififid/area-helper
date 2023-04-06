@@ -13,7 +13,5 @@ def get_env_var(name):
 
 load_dotenv()
 
-ROUND_DIGIT_COUNT = int(get_env_var("ROUND_DIGIT_COUNT"))
-EDGE_DISTANCE = int(get_env_var("EDGE_DISTANCE"))
-ADJUSTED_UR = get_env_var("ADJUSTED_UR") == "True"
 OSU_FOLDER = get_env_var("OSU_FOLDER")
+

@@ -1,6 +1,6 @@
 from slider import beatmap
 
-from src.consts import MAX_NOTE_HOLD_TIME
+from src.core.settings import core_settings
 from src.core.core import find_all_keys_in_timing, find_all_event_with_key_ranges
 
 
@@ -34,7 +34,7 @@ def find_all_note_hold_times(objs, events):
 
                 note_hold_time = min_timing[1] - min_timing[0]
 
-                if note_hold_time < MAX_NOTE_HOLD_TIME:
+                if note_hold_time < core_settings.MAX_NOTE_HOLD_TIME:
                     notes_hold_time.append(min_timing[1] - min_timing[0])
 
     return notes_hold_time

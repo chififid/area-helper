@@ -4,7 +4,7 @@ from shapely import MultiPoint
 from shapely.geometry import Point
 from shapely.geometry import LineString
 
-from src.consts import ALLOWED_ERROR_FACTOR
+from src.core.consts import ALLOWED_ERROR_FACTOR
 from src.core.movements import Movement, delete_same_movements
 from src.core.math_utils import get_distance, Vec2, step_to_direction_point, get_speed
 

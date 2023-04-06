@@ -4,7 +4,7 @@ from collections import namedtuple
 from slider import beatmap
 from osrparse.utils import Mod
 
-from src.settings import EDGE_DISTANCE
+from src.core.settings import core_settings
 from src.core.objects.Timings import Timings
 from src.core.beatmap import get_obj_time_window, get_obj_radius
 from src.core.core import find_all_event_with_key_ranges, find_all_events_with_keys_in_timing
@@ -58,7 +58,7 @@ def find_first_hit(obj, key_ranges, note_time, note_size):
             first_hit_range = event_with_keys
             first_hit_error = event_with_keys.start.time - obj_time
 
-            if distance >= note_size - EDGE_DISTANCE:
+            if distance >= note_size - core_settings.EDGE_DISTANCE:
                 is_edge_hit = True
             break
 

@@ -3,7 +3,7 @@ from collections import namedtuple
 from slider import beatmap
 
 from src.core.math_utils import get_distance, get_speed, Vec2
-from src.consts import SPEED_DECREASE_FACTOR_IN, SPEED_DECREASE_FACTOR_OUT, MIN_SNAP_SPEED
+from src.core.consts import SPEED_DECREASE_FACTOR_IN, SPEED_DECREASE_FACTOR_OUT, MIN_SNAP_SPEED
 
 Movement = namedtuple("Movement", "time x y")
 AimObj = namedtuple("AimObj", "movement i")
@@ -70,7 +70,7 @@ def get_snaps(movements, obj, next_obj):
                 if snap:
                     snaps.append(snap)
 
-                # clear variables
+                # Clear variables
                 is_snap_aim = False
                 min_speed = None
                 max_speed = 0

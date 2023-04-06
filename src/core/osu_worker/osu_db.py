@@ -5,7 +5,7 @@ from collections import namedtuple
 from termcolor import colored
 from numpy.compat import unicode
 
-from src.consts import OSU_DB_FILE, OSU_DB_SONGS
+from src.core.consts import OSU_DB_FILE, OSU_DB_SONGS
 
 
 Beatmap = namedtuple("Beatmap", "md5 folder file")
@@ -23,7 +23,7 @@ def parse_string(db, offset_n):
     if existence == 0x00:
         return "", offset_n + 1
     elif existence == 0x0b:
-        # decode ULEB128
+        # Decode ULEB128
         length = 0
         shift = 0
         offset_n += 1
@@ -50,7 +50,7 @@ def parse_beatmap(db, offset_n):
     for i in range(7):  # Skip useless fields
         _, offset_n = parse_string(db, offset_n)
 
-    # useful fields
+    # Useful fields
     md5, offset_n = parse_string(db, offset_n)
     file, offset_n = parse_string(db, offset_n)
 
@@ -75,7 +75,6 @@ def parse_beatmap(db, offset_n):
     folder, offset_n = parse_string(db, offset_n)
     offset_n += 18
 
-    # return
     bm = Beatmap(md5, folder, file)
     return bm, offset_n
 

@@ -1,11 +1,9 @@
-import math
-import sys
 from math import sqrt
 from collections import namedtuple
 
 import numpy as np
 
-from src.consts import FILTERED_MIN_LEN
+from src.core.consts import FILTERED_MIN_LEN
 
 
 Vec2 = namedtuple("Vec2", "x y")

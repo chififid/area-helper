@@ -1,7 +1,7 @@
 from slider import beatmap
 
+from src.core.settings import core_settings
 from src.core.core import find_all_key_ranges
-from src.consts import MIN_SLIDER_END_RELEASE_TIME, MAX_SLIDER_END_RELEASE_TIME
 
 
 def get_sliders(bm):
@@ -57,7 +57,8 @@ def find_all_slider_end_release_times(slider_objs, events):
             keys_in_slider_timing.sort(key=lambda key_range: key_range[1])
 
             slider_end_release_time = keys_in_slider_timing[-1][1] - slider_range[1]
-            if MIN_SLIDER_END_RELEASE_TIME < slider_end_release_time < MAX_SLIDER_END_RELEASE_TIME:
+            if core_settings.MIN_SLIDER_END_RELEASE_TIME < slider_end_release_time < \
+                    core_settings.MAX_SLIDER_END_RELEASE_TIME:
                 slider_end_release_times.append(slider_end_release_time)
 
     return slider_end_release_times

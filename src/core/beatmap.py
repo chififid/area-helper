@@ -29,7 +29,7 @@ def get_cs(beatmap, replay):
 
 
 def get_obj_radius(beatmap, replay):
-    return 54.4 - 4.48 * get_cs(beatmap, replay)  # osu px
+    return 54.4 - 4.48 * get_cs(beatmap, replay)  # Osu px
 
 
 def get_ar(beatmap, replay):
@@ -48,7 +48,7 @@ def get_obj_animation_time(beatmap, replay):
         time = 1200 + 600 * (5 - ar) / 5
     else:
         time = 1200 - 750 * (ar - 5) / 5
-    return time  # ms
+    return time  # Ms
 
 
 def get_od(beatmap, replay):
@@ -68,4 +68,4 @@ def get_obj_time_window(beatmap, replay, timing):
     elif timing == Timings.T300:
         obj_time = (160 - 12 * od) / 2
 
-    return obj_time  # ms
+    return obj_time  # Ms

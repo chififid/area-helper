@@ -55,14 +55,13 @@ def remap(beatmap_data, replay):
     lines_len = len(lines)
     additional_timing_points = []
     for line_i in range(i, lines_len):
-        print("---")
         line = lines[line_i]
 
         hit_obj = HitObj.parse_from_str(line)
         if not hit_obj:
             continue
 
-        obj_relax_time = hit_obj.time + REQUIRED_HIT_TIME  # ms
+        obj_relax_time = hit_obj.time + REQUIRED_HIT_TIME  # Ms
 
         if hit_obj.obj_type == HitObjType.Slider:
             slider_velocity = get_slider_velocity(
@@ -93,16 +92,8 @@ def remap(beatmap_data, replay):
                     TimingPointType.GREEN,
                 ))
 
-            if max_speed > 10:
-                print(list(filter(lambda item: item.speed > 10, path)))
-
-            print(calculate_path_len(sum(hit_obj.points, [])))
-            print("-")
-
             path = convert_path_to_points(path, max_speed)
             points = round_cords(path)
-
-            print(calculate_path_len(points), "()", beat_length)
 
             hit_obj.set_slider_data([points], 1, round(calculate_path_len(points)))
             # hit_obj.set_slider_data([points], 1, round(hit_obj.length))

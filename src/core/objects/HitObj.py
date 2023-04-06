@@ -11,10 +11,10 @@ class HitObj:
         self.time = time
         self.obj_type = obj_type
 
-        # note inf
+        # Note inf
         self.position = None
 
-        # slider inf
+        # Slider inf
         self.points = None
         self.repeat = None
         self.length = None
@@ -23,7 +23,7 @@ class HitObj:
     def parse_from_str(hit_obj_str):
         data = hit_obj_str.split(",")
 
-        time = int(data[2])  # ms
+        time = int(data[2])  # Ms
         obj_type = int(data[3])
 
         if HitObjType.Circle & obj_type:
@@ -55,13 +55,13 @@ class HitObj:
 
                 if len(sections_data) > 1:
                     self.repeat = int(sections_data[1])
-                    self.length = float(sections_data[2])  # osu px
+                    self.length = float(sections_data[2])  # Osu px
                     points[-1].append(tick_pos)
                     break
-            else:  # first tick
+            else:  # First tick
                 tick_pos = Vec2(int(sections_data[0]), int(sections_data[1]))
 
-            if len(points[-1]) and points[-1][-1] == tick_pos:  # new section
+            if len(points[-1]) and points[-1][-1] == tick_pos:  # New section
                 points.append([tick_pos])
             else:
                 points[-1].append(tick_pos)
@@ -76,7 +76,7 @@ class HitObj:
         self.repeat = repeat
         self.length = length
 
-    def print_slider(self, interval=None):  # in seconds
+    def print_slider(self, interval=None):  # In seconds
         points = sum(self.points, [])
         for (i, p) in enumerate(points[1:], 1):
             l_p = points[i - 1]

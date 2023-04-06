@@ -10,9 +10,7 @@ def get_slider_velocity(slider_multiplier, timing_points, slider_start_time):
     beat_length = timing_point.beat_length
     if timing_point.type == TimingPointType.RED:
         slider_velocity = slider_multiplier
-        print(1)
     else:
-        print(beat_length)
         slider_velocity = slider_multiplier * (-100 / beat_length)
 
     return slider_velocity

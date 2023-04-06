@@ -1,4 +1,4 @@
-from src.settings import ROUND_DIGIT_COUNT
+from src.core.settings import core_settings
 from src.core.math_utils import divide_and_round
 from src.core.sliders import find_all_slider_ranges
 
@@ -46,7 +46,7 @@ def fix_slider_frame_times(slider_objs, frame_times):
 
 
 def divide_frame_times(frame_times, divisor):
-    return [divide_and_round(frame_time, divisor, ROUND_DIGIT_COUNT) for frame_time in frame_times]
+    return [divide_and_round(frame_time, divisor, core_settings.ROUND_DIGIT_COUNT) for frame_time in frame_times]
 
 
 def get_frame_time_num(frame_times):
