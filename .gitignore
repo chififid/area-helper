@@ -1,0 +1,7 @@
+.env
+venv2/
+.idea/
+.slider/
+input/
+output/
+__pycache__/

@@ -5,6 +5,7 @@ from slider import beatmap
 from src.core.math_utils import get_distance, get_speed, Vec2
 from src.core.consts import SPEED_DECREASE_FACTOR_IN, SPEED_DECREASE_FACTOR_OUT, MIN_SNAP_SPEED
 
+
 Movement = namedtuple("Movement", "time x y")
 AimObj = namedtuple("AimObj", "movement i")
 

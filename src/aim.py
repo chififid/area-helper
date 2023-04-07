@@ -4,6 +4,7 @@ from collections import namedtuple
 from osrparse.utils import Mod
 from slider import beatmap, Position
 
+from src.settings import DEBUG
 from src.core.objects.Timings import Timings
 from src.core.math_utils import get_distance, Vec2
 from src.core.consts import POSSIBLE_SNAP_WINDOW_FACTOR
@@ -82,6 +83,12 @@ def get_aim_information(bm, replay, flow_aim=True):
                 continue
 
         if prev_aim_obj:
+            if DEBUG:
+                print()
+                print("DEBUG OBJ")
+                print(aim_obj.movement)
+                print()
+
             diff_weight = get_diff_weight(prev_aim_obj, obj)
             result.append(AimOffset(
                 obj.position,

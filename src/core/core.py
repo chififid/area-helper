@@ -4,6 +4,7 @@ from slider import beatmap
 from osrparse.utils import Mod
 from osrparse import utils, GameMode
 
+
 KeyRange = namedtuple("KeyRange", "start end")
 KeyRangeEvent = namedtuple("KeyRangeEvent", "time event")
 

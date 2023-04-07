@@ -63,18 +63,17 @@ def convert_to_tablet_offset(game_offset, monitor_ratio, tablet_area):
         game_offset.y / Position.y_max,
     )
 
-    monitor_ratio_num = monitor_ratio.x / monitor_ratio.y
-    if monitor_ratio_num > OSU_AREA_RATIO:
+    if monitor_ratio > OSU_AREA_RATIO:
         osu_area_ratio_to_screen_y = 0.8
         osu_area_ratio_to_screen = Vec2(
-            osu_area_ratio_to_screen_y * OSU_AREA_RATIO * (1 / monitor_ratio_num),
+            osu_area_ratio_to_screen_y * OSU_AREA_RATIO * (1 / monitor_ratio),
             osu_area_ratio_to_screen_y,
         )
     else:
         osu_area_ratio_to_screen_x = 0.8
         osu_area_ratio_to_screen = Vec2(
             osu_area_ratio_to_screen_x,
-            osu_area_ratio_to_screen_x * (1 / OSU_AREA_RATIO) * monitor_ratio_num,
+            osu_area_ratio_to_screen_x * (1 / OSU_AREA_RATIO) * monitor_ratio,
         )
 
     return Vec2(
@@ -88,11 +87,11 @@ def give_area_config(parsed_data, additional_information):
 
     tablet_data = get_tablet_data(aim_information)
 
-    print(tablet_data.angle)
-    print(*tablet_data.resize)
-    print(*tablet_data.offset)
-    print(*convert_to_tablet_offset(
-        tablet_data.offset,
-        additional_information.monitor_ratio,
-        additional_information.tablet_area
-    ))
+    print("New angle:", -tablet_data.angle)
+    # print(*tablet_data.resize)
+    # print(*tablet_data.offset)
+    # print(*convert_to_tablet_offset(
+    #     tablet_data.offset,
+    #     additional_information.monitor_ratio,
+    #     additional_information.tablet_area
+    # ))

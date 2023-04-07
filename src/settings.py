@@ -15,3 +15,9 @@ load_dotenv()
 
 OSU_FOLDER = get_env_var("OSU_FOLDER")
 
+DEBUG = get_env_var("DEBUG") == "True"
+
+MONITOR_RATIO = int(get_env_var("MONITOR_RATIO_WIDTH")) / int(get_env_var("MONITOR_RATIO_HEIGHT"))
+
+TABLET_AREA_WIDTH = float(get_env_var("TABLET_AREA_WIDTH"))
+TABLET_AREA_HEIGHT = float(get_env_var("TABLET_AREA_HEIGHT"))
