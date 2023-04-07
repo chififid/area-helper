@@ -71,6 +71,8 @@ def get_aim_information(bm, replay, flow_aim=True):
 
         if current_snaps:
             current_snaps = filter_impossible_snaps(current_snaps, obj_time, window_timing)
+
+        if current_snaps:
             aim_obj = current_snaps[0]
         else:
             aim_obj = get_nearest_aim_obj(movements, obj)
